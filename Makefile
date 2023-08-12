@@ -12,11 +12,13 @@ OBJ:=obj
 BIN:=bin
 DMP:=dump
 DEP:=dep
+LLVM-SRC:=llvm-src
 
 # Commands and flags
+CLANG:=/work/moein/build/bin/clang --sysroot=/rivos/riscv-gnu-toolchain/riscv64-unknown-elf -target riscv64-unknown-elf -march=rv64gc --gcc-toolchain=/rivos/riscv-gnu-toolchain -mspeculative-load-hardening
 CC:=riscv64-unknown-elf-gcc
 OBJDUMP:=riscv64-unknown-elf-objdump -S
-CFLAGS=-mcmodel=medany -l -std=gnu99 -O0 -g -fno-common -fno-builtin-printf -Wall -I$(INC) -Wno-unused-function -Wno-unused-variable
+CFLAGS= -mcmodel=medany -l -std=gnu99 -O0 -g -fno-common -fno-builtin-printf -Wall -I$(INC) -Wno-unused-function -Wno-unused-variable
 LDFLAGS:=-static -nostdlib -nostartfiles -lgcc
 DEPFLAGS=-MT $@ -MMD -MP -MF $(DEP)/$*.d
 RM=rm -rf
@@ -40,6 +42,11 @@ $(OBJ)/%.o: $(SRC)/%.c
 	@mkdir -p $(OBJ)
 	@mkdir -p $(DEP)
 	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+
+$(OBJ)/%.o: $(LLVM-SRC)/%.c
+	@mkdir -p $(OBJ)
+	@mkdir -p $(DEP)
+	$(CLANG) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # Build executable
 $(BIN)/%.riscv: $(OBJ)/%.o $(OBJ)/crt.o $(OBJ)/syscalls.o $(OBJ)/stack.o $(LNK)/link.ld
